@@ -300,7 +300,7 @@ class Scrapper:
                 file.write(f'In total {len(all_data)} URLs processed in {difference} seconds\n')
 
 if __name__ == '__main__': 
-    tryout = Scrapper()
-    tryout.scrap()
+    scrapper = Scrapper()
+    scrapper.scrap()
 
 
