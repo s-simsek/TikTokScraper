@@ -29,7 +29,7 @@ You have to have chrome installed!
     ```
 4. run the app
    ```sh
-   python3 scrapper.py
+   python3 src/scrapper.py
    ```
    
 Or, with *Docker*:
