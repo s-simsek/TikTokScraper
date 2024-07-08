@@ -25,7 +25,7 @@ You have to have chrome installed!
     ```
 3. Install the required dependencies:
     ```sh
-    pip install -r requirements.txt
+    pip3 install -r requirements.txt
     ```
 4. run the app
    ```sh
