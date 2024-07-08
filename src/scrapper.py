@@ -61,6 +61,7 @@ class Scrapper:
         self.url_list = utils.read('data/fetched_urls.json')
         with open(self.name, 'a') as file:
             file.write(f'{len(self.url_list)} URLs collected in {difference} seconds\n')
+            print(f'{len(self.url_list)} URLs collected in {difference} seconds')
             
     def scrap_metadata(self, url_list:list):
         """Scraps the metadata and saves it into disk
@@ -87,6 +88,8 @@ class Scrapper:
         with open(self.name, 'a') as file:
             file.write(f'{method} processed {processed_url_count} URLs in {difference} seconds, ')
             file.write(f'Success Rate: {int(success_rate)}%\n')
+            print(f"{method} processed {processed_url_count} URLs in {difference} seconds")
+            print(f'Success Rate: {int(success_rate)}%\n')
         
         # if success rate is < threshold, change the scrapper
         if success_rate < ScrapperConfig.SUCCESS_RATE_THRESHOLD:
@@ -117,6 +120,8 @@ class Scrapper:
         with open(self.name, 'a') as file:
             file.write(f'{method} processed {processed_url_count} URLs in {difference} seconds, ')
             file.write(f'Success Rate: {int(success_rate)}%\n')
+            print(f"{method} processed {processed_url_count} URLs in {difference} seconds")
+            print(f'Success Rate: {int(success_rate)}%')
             
         # if success rate is < threshold, change the scrapper
         if success_rate < ScrapperConfig.SUCCESS_RATE_THRESHOLD:
@@ -134,6 +139,7 @@ class Scrapper:
         """
         with open(self.name, 'a') as file:
             file.write(f'{len(full_data)} new URLs processed\n')
+            print(f'{len(full_data)} new URLs processed')
         if full_data:
             with open('data/database.json', 'r') as file:
                 database = json.load(file)
@@ -150,6 +156,7 @@ class Scrapper:
         urls = utils.read('data/fetched_urls.json')
         with open(self.name, 'a') as file:
             file.write(f'Left overs -> {len(urls)} URLs, {len(metadata)} Metadata, {len(comments)} Comments\n')
+            print(f'Left overs -> {len(urls)} URLs, {len(metadata)} Metadata, {len(comments)} Comments')
         
     def merge_results(self, clear:bool=False) -> dict:
         """After metadata and comments information is collected
@@ -228,6 +235,7 @@ class Scrapper:
         else:
             with open(self.name, 'a') as file:
                 file.write(f'No new URLs acquired\n')
+                print(f'No new URLs acquired')
             
     def left_over_run(self, clear:bool=False):
         """Scrap only metadata and comments for left over urls
@@ -238,9 +246,9 @@ class Scrapper:
         clear : bool, optional
             if True, clears the database for urls, metadata, and comments
         """
-        print(f'Initiating Left Over Run')
         with open(self.name, 'a') as file:
-                file.write(f'{'-'*5}Initiating Left Over Run{'-'*5}\n')
+                file.write(f'{"-"*5}Initiating Left Over Run{"-"*5}\n')
+                print(f'{"-"*5}Initiating Left Over Run{"-"*5}')
         self.update_missing_data()
         if self.missing_comment_urls + self.url_list:
             print('initiating comment Scrapping')
@@ -272,10 +280,9 @@ class Scrapper:
           
         outer_break = False  
         while len(all_data) < ScrapperConfig.TOTAL_SCRAP_COUNT and not outer_break:
-            
-            print(f'Initiating Full Run')
             with open(self.name, 'a') as file:
-                file.write(f'{'-'*5}Initiating Full Run{'-'*5}\n')
+                file.write(f'{"-"*5}Initiating Full Run{"-"*5}\n')
+                print(f'{"-"*5}Initiating Full Run{"-"*5}')
             self.full_run()
             all_data = utils.read('data/fetched_full_data.json')
             
@@ -298,6 +305,7 @@ class Scrapper:
         difference = f"{end_time - start_time:.2f}"
         with open(self.name, 'a') as file:
                 file.write(f'In total {len(all_data)} URLs processed in {difference} seconds\n')
+                print(f'In total {len(all_data)} URLs processed in {difference} seconds')
 
 if __name__ == '__main__': 
     scrapper = Scrapper()

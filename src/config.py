@@ -33,7 +33,7 @@ class ScrapperConfig:
     TOTAL_SCRAP_COUNT = 200 
     
     # url scrapper timeout in seconds
-    URL_SCRAPPER_TIMEOUT = 40
+    URL_SCRAPPER_TIMEOUT = 60
     
     # metadata scrapper timeout in seconds
     METADATA_SCRAPPER_TIMEOUT = 40 
@@ -45,7 +45,7 @@ class ScrapperConfig:
     METHOD_BREAK = 15 
     
     # sleep between runs in seconds
-    RUN_BREAK = 60
+    RUN_BREAK = 180
     
     # success rate threshold
     SUCCESS_RATE_THRESHOLD = 60
