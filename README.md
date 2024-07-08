@@ -2,26 +2,18 @@
 
 A powerful TikTok scraper that collects video metadata including comments, likes, views, shared counts, hashtags, and more.
 
-## Table of Contents
-- [Introduction](#introduction)
-- [Features](#features)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
-
 ## Introduction
 
-The TikTok Scraper is a tool designed to collect comprehensive data from TikTok videos to understand fashion trends. This data helps in producing AI-driven fashion designs based on current trends.
+The TikTok Scraper is a tool designed to collect comprehensive data from TikTok videos given hashtags. 
 
 ## Features
 
+- Fetches TikTok URL based on hashtags provided on the config file
 - Collects video metadata such as comments, likes, views, shared counts, and hashtags.
-- Supports fashion-related hashtag filtering.
-- Stores data locally for analysis.
 
 ## Installation
+
+You have to have chrome installed!
 
 1. Clone the repository:
     ```sh
@@ -29,15 +21,26 @@ The TikTok Scraper is a tool designed to collect comprehensive data from TikTok 
     ```
 2. Navigate to the project directory:
     ```sh
-    cd tiktok-scraper
+    cd TikTokScrapper
     ```
 3. Install the required dependencies:
     ```sh
     pip install -r requirements.txt
     ```
+4. run the app
+   ```sh
+   python3 scrapper.py
+   ```
+   
+Or, with *Docker*:
 
-## Usage
+1. Pull the Docker image
+    ```sh
+    docker pull safaksimsek/finesse-scrapper-app
+    ```
+2. Run the Docker container:
+   ```sh
+    docker run -it safaksimsek/finesse-scrapper-app
+    ```
 
-Run the scraper with the following command:
-```sh
-python scraper.py --hashtags fashion
+
