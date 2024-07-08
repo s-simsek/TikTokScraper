@@ -14,28 +14,37 @@ from config import ScrapperConfig
 class VideoBatchProcessor:
     
     def _process_url(self, url:str, shared_dict:dict, lock, path:str):
+        """
+        Processes a single URL to fetch data and update the shared dictionary.
+
+        Parameters
+        ----------
+        url : str
+            The URL to be processed.
+        shared_dict : dict
+            The shared dictionary to store the fetched data.
+        lock : Lock
+            The lock to synchronize access to the shared dictionary.
+        path : str
+            The path where the shared dictionary is saved.
+        """
         fetched_data = self._fetch_data(url)
         if fetched_data:
             with lock:
                 shared_dict[url] = fetched_data
                 utils.write(path, dict(shared_dict))
-    
-    # @utils.time_it        
-    # def _parallel_process(self, url_list:list, path:str) -> dict:
-    #     manager = multiprocessing.Manager()
-    #     shared_dict = manager.dict()
-    #     lock = manager.Lock()
-    #     with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
-    #         futures = [executor.submit(self._process_url, url, shared_dict, lock, path) for url in url_list]
-    #          for future in concurrent.futures.as_completed(futures):
-    #             try:
-    #                 future.result()
-    #             except Exception as e:
-    #                 # print(e)
-    #                 pass
-    #     print(f'{len(shared_dict)} video URLs processed')
               
-    def _parallel_process(self, url_list: list, path: str) -> dict:
+    def _parallel_process(self, url_list: list, path: str):
+        """
+        Processes a list of URLs in parallel using multiple processes.
+
+        Parameters
+        ----------
+        url_list : list
+            A list of URLs to be processed.
+        path : str
+            The path where the processed data will be saved.
+        """
         manager = multiprocessing.Manager()
         shared_dict = manager.dict()
         lock = manager.Lock()
@@ -63,6 +72,7 @@ class VideoBatchProcessor:
                     break
 
     def _fetch_data(self):
+        """Placeholder for fetching data from a URL"""
         pass
 
 class ProcessMetaData(VideoBatchProcessor):
@@ -70,7 +80,22 @@ class ProcessMetaData(VideoBatchProcessor):
     def __init__(self, url_list):
         self.url_list = url_list 
     
-    def _fetch_data(self, url:str, max_retries=3):
+    def _fetch_data(self, url:str, max_retries:int=3) -> dict:
+        """
+        Fetches metadata for a single URL, with retries on failure.
+
+        Parameters
+        ----------
+        url : str
+            The URL to fetch data from.
+        max_retries : int, optional
+            The number of fetch attempts, by default 3.
+
+        Returns
+        -------
+        dict
+            The fetched metadata information or None if unsuccessful.
+        """
         attempt = 0
         while attempt < max_retries:
             try:
@@ -101,6 +126,7 @@ class ProcessMetaData(VideoBatchProcessor):
         return None
     
     def get_metadata(self):
+        """Retrieves metadata for the URLs in the url_list"""
         self._parallel_process(self.url_list, 'data/fetched_metadata.json')
     
 class ProcessComments(VideoBatchProcessor):
@@ -109,6 +135,19 @@ class ProcessComments(VideoBatchProcessor):
         self.url_list = url_list
         
     def _fetch_data(self, url:str) -> list:
+        """
+        Fetches comments for a given video URL.
+
+        Parameters
+        ----------
+        url : str
+            The URL of the video to scrape comments for.
+
+        Returns
+        -------
+        list
+            A list of comments for the given video URL.
+        """
         video_id = url.split('/')[-1]
         pattern = r'comment:\s*(.*)'
         post_comments = []
@@ -126,17 +165,22 @@ class ProcessComments(VideoBatchProcessor):
         return post_comments
     
     def get_comments(self):
+        """Retrieves comments for the URLs in the url_list"""
         self._parallel_process(self.url_list, 'data/fetched_comments.json')
 
         
 if __name__ == '__main__':
     with open('urls.json', 'r') as file:
-        loaded_urls = json.load(file)[:20]
-    ProcessComments(loaded_urls).get_comments()
-
-    comments = utils.read('data/fetched_comments.json')
-    print(len(comments))
-
+        urls = json.load(file)
+    ProcessMetaData(urls[:10]).get_metadata()
+    ProcessComments(urls[:10]).get_comments()
+    try:
+        comments = utils.read('data/fetched_comments.json')
+        metadata = utils.read('data/fetched_metadata.json')
+        print(f'metadata: {len(metadata)}')
+        print(f'comments: {len(comments)}')
+    except Exception as e:
+        print(e)
     
 
 

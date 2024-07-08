@@ -7,28 +7,58 @@ import aiohttp
 import utils
 from config import ScrapperConfig
 from fake_useragent import UserAgent
-from langdetect import DetectorFactory, detect
-from langdetect.lang_detect_exception import LangDetectException
 from lxml import html
 
 
 class AsyncVideoProcessor:
     
-    async def _process_url(self, session, url:str, shared_dict:dict, lock, path:str):
+    async def _process_url(self, 
+                           session: aiohttp.ClientSession, 
+                           url:str, 
+                           shared_dict:dict, 
+                           lock:asyncio.Lock, 
+                           path:str):
+        """
+        Asynchronously processes a URL to fetch data and updates the shared dictionary.
+
+        Parameters
+        ----------
+        session : aiohttp.ClientSession
+            The aiohttp session to use for the request.
+        url : str
+            The URL to be processed.
+        shared_dict : dict
+            The shared dictionary to store the fetched data.
+        lock : asyncio.Lock
+            The lock to synchronize access to the shared dictionary.
+        path : str
+            The path where the shared dictionary is saved.
+        """
         fetched_data = await self._fetch_data(session, url)
         if fetched_data:
             async with lock:
                 shared_dict[url] = fetched_data               
                 utils.write(path, shared_dict)
 
-    async def _async_scrapper(self, url_list:list, path:str) -> dict:
+    async def _async_scrapper(self, url_list:list, path:str):
+        """
+        Asynchronously scrapes data from a list of URLs and saves the results to the specified path.
+
+        Parameters
+        ----------
+        url_list : list
+            A list of URLs to be scraped.
+        path : str
+            The path where the scraped data will be saved.
+        """
         shared_dict = {}
         lock = asyncio.Lock()
         async with aiohttp.ClientSession() as session:
             tasks = [self._process_url(session, url, shared_dict, lock, path) for url in url_list]
             await asyncio.gather(*tasks)
     
-    async def _fetch_data(self):
+    async def _fetch_data(self,):
+        """Placeholder for fetching data from a URL"""
         pass
     
 class AsyncProcessMetaData(AsyncVideoProcessor): 
@@ -36,22 +66,27 @@ class AsyncProcessMetaData(AsyncVideoProcessor):
     def __init__(self, url_list) -> None:
         self.url_list = url_list
     
-    async def _fetch_data(self, session, url, max_retries=5):
-        """_summary_
+    async def _fetch_data(self, 
+                          session: aiohttp.ClientSession, 
+                          url:str, 
+                          max_retries:int=5):
+        """
+        Asynchronous metadata scraping for a single URL.
+        If scraping fails, retries up to max_retries times.
 
         Parameters
         ----------
-        session : _type_
-            _description_
-        url : _type_
-            _description_
+        session : aiohttp.ClientSession
+            The aiohttp session to use for the request.
+        url : str
+            The URL to fetch.
         max_retries : int, optional
-            _description_, by default 5
+            The number of fetch attempts, by default 5.
 
         Returns
         -------
-        _type_
-            _description_
+        dict
+            The video metadata information or None if fetching is not successful.
         """
         attempt = 0
         while attempt < max_retries:
@@ -83,7 +118,8 @@ class AsyncProcessMetaData(AsyncVideoProcessor):
             await asyncio.sleep(1)
         return None
     
-    def get_metadata(self) -> dict:
+    def get_metadata(self):
+        """Retrieves metadata for the URLs in the url_list. until timeout"""
         try:
             asyncio.run(asyncio.wait_for(self._async_scrapper(self.url_list, 'data/fetched_metadata.json'), 
                                          timeout=ScrapperConfig.METADATA_SCRAPPER_TIMEOUT))
@@ -102,14 +138,29 @@ class AsyncProcessComments(AsyncVideoProcessor):
     def __init__(self, url_list) -> None:
         self.url_list = url_list
     
-    async def _fetch(self, session, url):
+    async def _fetch(self, session: aiohttp.ClientSession, url: str) -> dict:
+        """
+        Fetches JSON data from a given URL.
+
+        Parameters
+        ----------
+        session : aiohttp.ClientSession
+            The aiohttp session to use for the request.
+        url : str
+            The URL to fetch JSON data from.
+
+        Returns
+        -------
+        dict
+            The fetched JSON data.
+        """
         async with session.get(url, headers=ScrapperConfig.HEADERS) as response:
             try: 
                 return await response.json()
             except: 
                 return None  
             
-    async def _fetch_data(self, session, url):
+    async def _fetch_data(self, session: aiohttp.ClientSession, url :str) -> list:
         """
         Fetch comments data for a given video URL.
 
@@ -148,15 +199,8 @@ class AsyncProcessComments(AsyncVideoProcessor):
             cursor_index += 50 
         return post_comments
     
-    @utils.time_it
-    def get_comments(self) -> dict:
-        """_summary_
-
-        Returns
-        -------
-        dict
-            _description_
-        """
+    def get_comments(self):
+        """Retrieves comments for the URLs in the url_list."""
         try:
             asyncio.run(asyncio.wait_for(self._async_scrapper(self.url_list, 'data/fetched_comments.json'), 
                                          timeout=ScrapperConfig.COMMENT_SCRAPPER_TIMEOUT))
@@ -168,12 +212,14 @@ if __name__ == '__main__':
     
     with open('urls.json', 'r') as file:
         urls = json.load(file)
-    AsyncProcessMetaData(urls).get_metadata()
-    # AsyncProcessComments(urls[:20]).get_comments()
+    AsyncProcessMetaData(urls[:10]).get_metadata()
+    AsyncProcessComments(urls[:10]).get_comments()
     try:
-        comments = utils.read('data/fetched_metadata.json')
-        print(len(comments))
-    except:
-        print('empty')
+        comments = utils.read('data/fetched_comments.json')
+        metadata = utils.read('data/fetched_metadata.json')
+        print(f'metadata: {len(metadata)}')
+        print(f'comments: {len(comments)}')
+    except Exception as e:
+        print(e)
         
     

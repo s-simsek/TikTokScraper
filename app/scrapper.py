@@ -1,11 +1,8 @@
-import concurrent.futures
 import json
-import multiprocessing
 import os
 import time
 from datetime import datetime
 
-import requests
 import utils
 from async_video_processor import AsyncProcessComments, AsyncProcessMetaData
 from config import ScrapperConfig
@@ -23,9 +20,17 @@ class Scrapper:
 
     def initiate_scrapper(self):
         """Initiates the database"""
+        directory = "runs"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            
         with open(self.name, 'w') as file:
             file.write(f'Scrapper Run, Date: {datetime.now().strftime("%m/%d/%Y")}\n')
         
+        directory = "data"
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            
         # Creating Database
         with open('data/fetched_urls.json', 'w') as json_file:
             json.dump([], json_file, indent=4)
@@ -45,6 +50,7 @@ class Scrapper:
                 json.dump({}, json_file, indent=4)
     
     def scrap_urls(self):
+        """Runs the URL scrapper and saves it into disk"""
         # run scrapper
         existing_urls = list(utils.read('data/database.json').keys())
         start_time = time.time()
@@ -56,7 +62,15 @@ class Scrapper:
         with open(self.name, 'a') as file:
             file.write(f'{len(self.url_list)} URLs collected in {difference} seconds\n')
             
-    def scrap_metadata(self, url_list):
+    def scrap_metadata(self, url_list:list):
+        """Scraps the metadata and saves it into disk
+        Scrapping either asynchronous or in parallel based on success rate
+
+        Parameters
+        ----------
+        url_list : list
+            list of URLs to scrap the metadata for
+        """
         start_time = time.time()
         if self.async_metadata:
             scrapper = AsyncProcessMetaData(url_list)
@@ -78,7 +92,15 @@ class Scrapper:
         if success_rate < ScrapperConfig.SUCCESS_RATE_THRESHOLD:
             self.async_metadata = not self.async_metadata
             
-    def scrap_comments(self, url_list):
+    def scrap_comments(self, url_list:list):
+        """Scraps the metadata and saves it into disk
+        Scrapping either asynchronous or in parallel based on success rate
+
+        Parameters
+        ----------
+        url_list : list
+            list of URLs to scrap the metadata for
+        """
         start_time = time.time()
         if self.async_comments:
             scrapper = AsyncProcessComments(url_list)
@@ -101,6 +123,15 @@ class Scrapper:
             self.async_comments = not self.async_comments
         
     def update_database(self, full_data:dict):
+        """Updates the database with collected full data information
+        Reports back the left over data in URLs, Metadata, and Comments database
+
+        Parameters
+        ----------
+        full_data : dict --> keys: URLs | values: metadata + comments
+            complete fetched data in where all the URLs have both comments and 
+            metadata information
+        """
         with open(self.name, 'a') as file:
             file.write(f'{len(full_data)} new URLs processed\n')
         if full_data:
@@ -120,7 +151,24 @@ class Scrapper:
         with open(self.name, 'a') as file:
             file.write(f'Left overs -> {len(urls)} URLs, {len(metadata)} Metadata, {len(comments)} Comments\n')
         
-    def merge_results(self, clear=False):
+    def merge_results(self, clear:bool=False) -> dict:
+        """After metadata and comments information is collected
+        URLs that have both information are merged and removed from 
+        comments and metadata database. Unprocessed URLs are kept in each database
+        for future run. After this method call, either url, metadata, and comments
+        database all have unique URLs among each other or they are cleared
+
+        Parameters
+        ----------
+        clear : bool, optional
+            if True, clears the database for urls, metadata, and comments
+
+        Returns
+        -------
+        full_data : dict --> keys: URLs | values: metadata + comments
+            complete fetched data in where all the URLs have both comments and 
+            metadata information
+        """
         metadata = utils.read('data/fetched_metadata.json')
         comments = utils.read('data/fetched_comments.json')
         urls = utils.read('data/fetched_urls.json')
@@ -149,12 +197,20 @@ class Scrapper:
         return full_data
     
     def update_missing_data(self): 
+        """Updates the URLs that have metadata information but not comments (missing_comment_urls)
+        as well as URL that have comments but not metadata information (missing_metadata_urls)"""
         metadata = utils.read('data/fetched_metadata.json')
         comments = utils.read('data/fetched_comments.json')
         self.missing_comment_urls = list(set(metadata.keys()).difference(set(comments.keys())))
         self.missing_metadata_urls = list(set(comments.keys()).difference(set(metadata.keys())))
     
     def full_run(self):
+        """Full run of the scrapper with the following steps:
+        1 - run URL scrapper
+        2 - run metadata scrapper
+        3 - run comment scrapper
+        4 - merge results
+        5 - update database"""
         print('initiating url collection')
         self.scrap_urls()
         time.sleep(ScrapperConfig.METHOD_BREAK)
@@ -173,7 +229,15 @@ class Scrapper:
             with open(self.name, 'a') as file:
                 file.write(f'No new URLs acquired\n')
             
-    def left_over_run(self, clear=False):
+    def left_over_run(self, clear:bool=False):
+        """Scrap only metadata and comments for left over urls
+        merge the results and updates the database
+
+        Parameters
+        ----------
+        clear : bool, optional
+            if True, clears the database for urls, metadata, and comments
+        """
         print(f'Initiating Left Over Run')
         with open(self.name, 'a') as file:
                 file.write(f'{'-'*5}Initiating Left Over Run{'-'*5}\n')
@@ -192,6 +256,8 @@ class Scrapper:
         self.update_database(full_data)
         
     def scrap(self):
+        """Main scrapper method
+        Runs the scrapper until desired total number of URLs are fully processed"""
         start_time = time.time()
         all_data = utils.read('data/fetched_full_data.json')
         
@@ -236,7 +302,5 @@ class Scrapper:
 if __name__ == '__main__': 
     tryout = Scrapper()
     tryout.scrap()
-    
-    #with open('urls.json', 'r') as file:
-        #urls = json.load(file)
+
 

@@ -35,7 +35,22 @@ def url_verificaiton(url:str) -> bool:
     return bool(pattern.match(url)) 
 
 def fetch_video_urls(url: str, existing_urls: list, shared_video_urls, lock, stop_signal):
-    
+    """
+    Fetches video URLs from a given hashtag URL using Selenium to scroll and load more videos.
+
+    Parameters
+    ----------
+    url : str
+        The hashtag URL to scrape videos from.
+    existing_urls : list
+        List of existing video URLs to check against to avoid duplicates.
+    shared_video_urls : multiprocessing.Manager().list
+        A shared list to store the fetched video URLs.
+    lock : multiprocessing.Manager().Lock
+        A lock to synchronize access to the shared list.
+    stop_signal : multiprocessing.Manager().Value
+        A signal to indicate when to stop the scraping process.
+    """
     chrome_options.add_argument(f"--user-agent={ua.random}")
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
@@ -85,6 +100,8 @@ def scrap_parallel(hashtag_urls, existing_urls:list, stop_signal):
         List of hashtag URLs to scrape videos from.
     existing_urls : list of str
         List of existing video URLs to check against to avoid duplicates.
+    stop_signal : multiprocessing.Manager().Value
+        A signal to indicate when to stop the scraping process.
 
     Returns
     -------
@@ -101,7 +118,15 @@ def scrap_parallel(hashtag_urls, existing_urls:list, stop_signal):
         for future in concurrent.futures.as_completed(futures):
             future.result()  
 
-def url_scrapper(existing_urls: list) -> list:
+def url_scrapper(existing_urls: list):
+    """
+    Initiates the URL scraping process for the given list of existing URLs.
+
+    Parameters
+    ----------
+    existing_urls : list
+        List of existing video URLs to check against to avoid duplicates.
+    """
     hashtag_urls = [ScrapperConfig.URL + hashtag for hashtag in ScrapperConfig.HASHTAGS]
     stop_signal = multiprocessing.Manager().Value('b', False)
     process = multiprocessing.Process(target=scrap_parallel, args=(hashtag_urls, existing_urls, stop_signal))
@@ -111,11 +136,8 @@ def url_scrapper(existing_urls: list) -> list:
         stop_signal.value = True
         process.terminate()
         process.join()
-
-
+        
 if __name__ == '__main__':
-    import os
-    print(os.getcwd())
     existing_urls = utils.read('urls.json')[:10]
     url_scrapper(existing_urls)
     
