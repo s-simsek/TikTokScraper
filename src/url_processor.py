@@ -141,4 +141,9 @@ def url_scraper(existing_urls: list):
 if __name__ == '__main__':
     existing_urls = utils.read('urls.json')[:10]
     url_scraper(existing_urls)
+    try:
+        urls = utils.read('data/fetched_urls.json')
+        print(len(urls))
+    except Exception as e:
+        print(e)
     
