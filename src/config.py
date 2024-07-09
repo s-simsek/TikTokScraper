@@ -1,7 +1,10 @@
 """Configuration Settings for the App"""
 
+import multiprocessing
+
 from fake_useragent import UserAgent
 
+cpu_count = multiprocessing.cpu_count()
 ua = UserAgent()
 
 class ScraperConfig:
@@ -25,6 +28,9 @@ class ScraperConfig:
     
     # metadata scrapper method: parallel or async
     ASYNC_METADATA = True
+    
+    # number of cores to use for parallel processes
+    CPU_COUNT = max(cpu_count - 4, 1)
     
     # comment scrapper method: parallel or async
     ASYNC_COMMENTS = True 

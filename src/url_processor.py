@@ -112,7 +112,7 @@ def scrap_parallel(hashtag_urls, existing_urls:list, stop_signal):
     manager = multiprocessing.Manager()
     shared_video_urls = manager.list()
     lock = manager.Lock()
-    cpu_count = min(multiprocessing.cpu_count(), len(ScraperConfig.HASHTAGS))
+    cpu_count = min(ScraperConfig.CPU_COUNT, len(ScraperConfig.HASHTAGS))
     with concurrent.futures.ProcessPoolExecutor(max_workers=cpu_count) as executor:
         futures = [executor.submit(fetch_video_urls, url, existing_urls, shared_video_urls, lock, stop_signal) for url in hashtag_urls]
 

@@ -50,7 +50,7 @@ class VideoBatchProcessor:
         shared_dict = manager.dict()
         lock = manager.Lock()
 
-        with concurrent.futures.ProcessPoolExecutor(max_workers=10) as executor:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=ScraperConfig.CPU_COUNT) as executor:
             futures = {executor.submit(self._process_url, url, shared_dict, lock, path): url for url in url_list}
             start_time = time.time()
             while futures:
