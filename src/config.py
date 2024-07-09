@@ -4,7 +4,7 @@ from fake_useragent import UserAgent
 
 ua = UserAgent()
 
-class ScrapperConfig:
+class ScraperConfig:
     # base url
     URL = "https://www.tiktok.com/tag/"
     
@@ -33,13 +33,13 @@ class ScrapperConfig:
     TOTAL_SCRAP_COUNT = 1000 
     
     # url scrapper timeout in seconds
-    URL_SCRAPPER_TIMEOUT = 60
+    URL_SCRAPER_TIMEOUT = 60
     
     # metadata scrapper timeout in seconds
-    METADATA_SCRAPPER_TIMEOUT = 40 
+    METADATA_SCRAPER_TIMEOUT = 40 
     
     # comment scrapper timeout in seconds
-    COMMENT_SCRAPPER_TIMEOUT = 40 
+    COMMENT_SCRAPER_TIMEOUT = 40 
     
     # sleep between methods in seconds
     METHOD_BREAK = 2

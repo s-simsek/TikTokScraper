@@ -6,9 +6,10 @@ import re
 import time
 
 import requests
-import utils
 from bs4 import BeautifulSoup
-from config import ScrapperConfig
+
+import utils
+from config import ScraperConfig
 
 
 class VideoBatchProcessor:
@@ -66,7 +67,7 @@ class VideoBatchProcessor:
                         futures.pop(future)
                 # Check if the overall timeout has been reached
                 elapsed_time = time.time() - start_time
-                if elapsed_time >= ScrapperConfig.COMMENT_SCRAPPER_TIMEOUT:
+                if elapsed_time >= ScraperConfig.COMMENT_SCRAPER_TIMEOUT:
                     for future in not_done:
                         future.cancel()
                     break
@@ -99,7 +100,7 @@ class ProcessMetaData(VideoBatchProcessor):
         attempt = 0
         while attempt < max_retries:
             try:
-                response = requests.get(url, headers=ScrapperConfig.HEADERS, timeout=10)
+                response = requests.get(url, headers=ScraperConfig.HEADERS, timeout=10)
                 if response.status_code == 200:
                     soup = BeautifulSoup(response.text, 'html.parser')
                     json_content = soup.find(id="__UNIVERSAL_DATA_FOR_REHYDRATION__").string
@@ -152,9 +153,9 @@ class ProcessComments(VideoBatchProcessor):
         pattern = r'comment:\s*(.*)'
         post_comments = []
         cursor_index = 0
-        while len(post_comments) < ScrapperConfig.COMMENT_COUNT:
+        while len(post_comments) < ScraperConfig.COMMENT_COUNT:
             comment_url = f'https://www.tiktok.com/api/comment/list/?aweme_id={video_id}&count=50&cursor={cursor_index}'
-            response = requests.get(comment_url, headers=ScrapperConfig.HEADERS)
+            response = requests.get(comment_url, headers=ScraperConfig.HEADERS)
             if response.status_code == 200: 
                 comment_data = response.json()['comments']
                 if not comment_data:

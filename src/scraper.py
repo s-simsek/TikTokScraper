@@ -5,27 +5,27 @@ from datetime import datetime
 
 import utils
 from async_video_processor import AsyncProcessComments, AsyncProcessMetaData
-from config import ScrapperConfig
+from config import ScraperConfig
 from parallel_video_processor import ProcessComments, ProcessMetaData
-from url_processor import url_scrapper
+from url_processor import url_scraper
 
 
-class Scrapper:
+class Scraper:
     
     def __init__(self) -> None:
         self.name = f'runs/{utils.record_now()}.txt' 
-        self.async_metadata = ScrapperConfig.ASYNC_METADATA
-        self.async_comments = ScrapperConfig.ASYNC_COMMENTS
-        self.initiate_scrapper()
+        self.async_metadata = ScraperConfig.ASYNC_METADATA
+        self.async_comments = ScraperConfig.ASYNC_COMMENTS
+        self.initiate_scraper()
 
-    def initiate_scrapper(self):
+    def initiate_scraper(self):
         """Initiates the database"""
         directory = "runs"
         if not os.path.exists(directory):
             os.makedirs(directory)
             
         with open(self.name, 'w') as file:
-            file.write(f'Scrapper Run, Date: {datetime.now().strftime("%m/%d/%Y")}\n')
+            file.write(f'Scraper Run, Date: {datetime.now().strftime("%m/%d/%Y")}\n')
         
         directory = "data"
         if not os.path.exists(directory):
@@ -50,11 +50,11 @@ class Scrapper:
                 json.dump({}, json_file, indent=4)
     
     def scrap_urls(self):
-        """Runs the URL scrapper and saves it into disk"""
-        # run scrapper
+        """Runs the URL scraper and saves it into disk"""
+        # run scraper
         existing_urls = list(utils.read('data/database.json').keys())
         start_time = time.time()
-        url_scrapper(existing_urls)
+        url_scraper(existing_urls)
         end_time = time.time()
         difference = f"{end_time - start_time:.2f}"
         
@@ -65,7 +65,7 @@ class Scrapper:
             
     def scrap_metadata(self, url_list:list):
         """Scraps the metadata and saves it into disk
-        Scrapping either asynchronous or in parallel based on success rate
+        Scraping either asynchronous or in parallel based on success rate
 
         Parameters
         ----------
@@ -74,12 +74,12 @@ class Scrapper:
         """
         start_time = time.time()
         if self.async_metadata:
-            scrapper = AsyncProcessMetaData(url_list)
+            scraper = AsyncProcessMetaData(url_list)
             method = 'Async Metadata'
         else:
-            scrapper = ProcessMetaData(url_list)
+            scraper = ProcessMetaData(url_list)
             method = 'Parallel Metadata'
-        scrapper.get_metadata()
+        scraper.get_metadata()
         end_time = time.time()
         difference = f"{end_time - start_time:.2f}"
         processed_url_count = len(utils.read('data/fetched_metadata.json'))
@@ -91,13 +91,13 @@ class Scrapper:
             print(f"{method} processed {processed_url_count} URLs in {difference} seconds")
             print(f'Success Rate: {int(success_rate)}%')
         
-        # if success rate is < threshold, change the scrapper
-        if success_rate < ScrapperConfig.SUCCESS_RATE_THRESHOLD:
+        # if success rate is < threshold, change the scraper
+        if success_rate < ScraperConfig.SUCCESS_RATE_THRESHOLD:
             self.async_metadata = not self.async_metadata
             
     def scrap_comments(self, url_list:list):
         """Scraps the metadata and saves it into disk
-        Scrapping either asynchronous or in parallel based on success rate
+        Scraping either asynchronous or in parallel based on success rate
 
         Parameters
         ----------
@@ -106,12 +106,12 @@ class Scrapper:
         """
         start_time = time.time()
         if self.async_comments:
-            scrapper = AsyncProcessComments(url_list)
+            scraper = AsyncProcessComments(url_list)
             method = 'Async Comments'
         else:
-            scrapper = ProcessComments(url_list)
+            scraper = ProcessComments(url_list)
             method = 'Parallel Comments'
-        scrapper.get_comments()
+        scraper.get_comments()
         end_time = time.time()
         difference = f"{end_time - start_time:.2f}"
         processed_url_count = len(utils.read('data/fetched_comments.json'))
@@ -125,8 +125,8 @@ class Scrapper:
             print(f"{method} processed {processed_url_count} URLs in {difference} seconds")
             print(f'Success Rate: {int(success_rate)}%')
             
-        # if success rate is < threshold, change the scrapper
-        if success_rate < ScrapperConfig.SUCCESS_RATE_THRESHOLD:
+        # if success rate is < threshold, change the scraper
+        if success_rate < ScraperConfig.SUCCESS_RATE_THRESHOLD:
             self.async_comments = not self.async_comments
         
     def update_database(self, full_data:dict):
@@ -231,23 +231,23 @@ class Scrapper:
         self.missing_metadata_urls = list(set(comments.keys()).difference(set(metadata.keys())))
     
     def full_run(self):
-        """Full run of the scrapper with the following steps:
-        1 - run URL scrapper
-        2 - run metadata scrapper
-        3 - run comment scrapper
+        """Full run of the scraper with the following steps:
+        1 - run URL scraper
+        2 - run metadata scraper
+        3 - run comment scraper
         4 - merge results
         5 - update database"""
         print('initiating url collection')
         self.scrap_urls()
-        time.sleep(ScrapperConfig.METHOD_BREAK)
+        time.sleep(ScraperConfig.METHOD_BREAK)
         if self.url_list:
-            print('initiating metada scrapping')
+            print('initiating metada scraping')
             self.scrap_metadata(self.url_list)
-            time.sleep(ScrapperConfig.METHOD_BREAK)
+            time.sleep(ScraperConfig.METHOD_BREAK)
             
-            print('initiating comment Scrapping')
+            print('initiating comment scraping')
             self.scrap_comments(self.url_list)
-            time.sleep(ScrapperConfig.METHOD_BREAK)
+            time.sleep(ScraperConfig.METHOD_BREAK)
             
             full_data = self.merge_results() 
             self.update_database(full_data)
@@ -271,21 +271,21 @@ class Scrapper:
                 
         self.update_missing_data()
         if self.missing_comment_urls + self.url_list:
-            print('initiating comment Scrapping')
+            print('initiating comment scraping')
             self.scrap_comments(list(set(self.missing_comment_urls + self.url_list)))
-            time.sleep(ScrapperConfig.METHOD_BREAK)
+            time.sleep(ScraperConfig.METHOD_BREAK)
             
         if self.missing_metadata_urls + self.url_list: 
-            print('initiating metadata scrapping')
+            print('initiating metadata scraping')
             self.scrap_metadata(list(set(self.missing_metadata_urls + self.url_list)))
-            time.sleep(ScrapperConfig.METHOD_BREAK)
+            time.sleep(ScraperConfig.METHOD_BREAK)
         
         full_data = self.merge_results(clear)
         self.update_database(full_data)
         
     def scrap(self):
-        """Main scrapper method
-        Runs the scrapper until desired total number of URLs are fully processed"""
+        """Main scraper method
+        Runs the scraper until desired total number of URLs are fully processed"""
         start_time = time.time()
         all_data = utils.read('data/fetched_full_data.json')
         
@@ -293,13 +293,13 @@ class Scrapper:
             nonlocal all_data
             self.left_over_run(clear=clear)
             all_data = utils.read('data/fetched_full_data.json')
-            if len(all_data) >= ScrapperConfig.TOTAL_SCRAP_COUNT:
+            if len(all_data) >= ScraperConfig.TOTAL_SCRAP_COUNT:
                 return True
-            time.sleep(ScrapperConfig.RUN_BREAK)
+            time.sleep(ScraperConfig.RUN_BREAK)
             return False
           
         outer_break = False  
-        while len(all_data) < ScrapperConfig.TOTAL_SCRAP_COUNT and not outer_break:
+        while len(all_data) < ScraperConfig.TOTAL_SCRAP_COUNT and not outer_break:
             with open(self.name, 'a') as file:
                 file.write(f'\n{"-"*5}Initiating Full Run{"-"*5}\n')
                 print(f'\n{"-"*5}Initiating Full Run{"-"*5}')
@@ -307,14 +307,14 @@ class Scrapper:
             all_data = utils.read('data/fetched_full_data.json')
             
             # if enough data is collected after full run, break
-            if len(all_data) >= ScrapperConfig.TOTAL_SCRAP_COUNT:
+            if len(all_data) >= ScraperConfig.TOTAL_SCRAP_COUNT:
                 break
-            time.sleep(ScrapperConfig.RUN_BREAK)
+            time.sleep(ScraperConfig.RUN_BREAK)
             
             # start left over run 
-            for i in range(ScrapperConfig.LEFT_OVER_RUN_COUNT):
+            for i in range(ScraperConfig.LEFT_OVER_RUN_COUNT):
                 # on the last iteration, clear database
-                clear_database = i == ScrapperConfig.LEFT_OVER_RUN_COUNT - 1
+                clear_database = i == ScraperConfig.LEFT_OVER_RUN_COUNT - 1
                 # if enough data is collected, break the inner and outer loop
                 if perform_left_over_run(clear=clear_database):
                     outer_break = True
@@ -328,7 +328,7 @@ class Scrapper:
                 print(f'In total {len(all_data)} URLs processed in {difference} seconds')
 
 if __name__ == '__main__': 
-    scrapper = Scrapper()
-    scrapper.scrap()
+    scraper = Scraper()
+    scraper.scrap()
 
 

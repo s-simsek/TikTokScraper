@@ -4,10 +4,11 @@ import json
 import re
 
 import aiohttp
-import utils
-from config import ScrapperConfig
 from fake_useragent import UserAgent
 from lxml import html
+
+import utils
+from config import ScraperConfig
 
 
 class AsyncVideoProcessor:
@@ -40,7 +41,7 @@ class AsyncVideoProcessor:
                 shared_dict[url] = fetched_data               
                 utils.write(path, shared_dict)
 
-    async def _async_scrapper(self, url_list:list, path:str):
+    async def _async_scraper(self, url_list:list, path:str):
         """
         Asynchronously scrapes data from a list of URLs and saves the results to the specified path.
 
@@ -91,7 +92,7 @@ class AsyncProcessMetaData(AsyncVideoProcessor):
         attempt = 0
         while attempt < max_retries:
             try:
-                async with session.get(url, headers=ScrapperConfig.HEADERS, timeout=10) as response:
+                async with session.get(url, headers=ScraperConfig.HEADERS, timeout=10) as response:
                     if response.status == 200:
                         text = await response.text()
                         tree = html.fromstring(text)
@@ -121,8 +122,8 @@ class AsyncProcessMetaData(AsyncVideoProcessor):
     def get_metadata(self):
         """Retrieves metadata for the URLs in the url_list. until timeout"""
         try:
-            asyncio.run(asyncio.wait_for(self._async_scrapper(self.url_list, 'data/fetched_metadata.json'), 
-                                         timeout=ScrapperConfig.METADATA_SCRAPPER_TIMEOUT))
+            asyncio.run(asyncio.wait_for(self._async_scraper(self.url_list, 'data/fetched_metadata.json'), 
+                                         timeout=ScraperConfig.METADATA_SCRAPER_TIMEOUT))
         except:
             pass
     
@@ -154,7 +155,7 @@ class AsyncProcessComments(AsyncVideoProcessor):
         dict
             The fetched JSON data.
         """
-        async with session.get(url, headers=ScrapperConfig.HEADERS) as response:
+        async with session.get(url, headers=ScraperConfig.HEADERS) as response:
             try: 
                 return await response.json()
             except: 
@@ -182,7 +183,7 @@ class AsyncProcessComments(AsyncVideoProcessor):
         post_comments = []
         cursor_index = 0
 
-        while len(post_comments) < ScrapperConfig.COMMENT_COUNT:
+        while len(post_comments) < ScraperConfig.COMMENT_COUNT:
             comment_url = f'https://www.tiktok.com/api/comment/list/?aweme_id={video_id}&count=50&cursor={cursor_index}'
             comment_data = await self._fetch(session, comment_url)
             try: 
@@ -202,8 +203,8 @@ class AsyncProcessComments(AsyncVideoProcessor):
     def get_comments(self):
         """Retrieves comments for the URLs in the url_list."""
         try:
-            asyncio.run(asyncio.wait_for(self._async_scrapper(self.url_list, 'data/fetched_comments.json'), 
-                                         timeout=ScrapperConfig.COMMENT_SCRAPPER_TIMEOUT))
+            asyncio.run(asyncio.wait_for(self._async_scraper(self.url_list, 'data/fetched_comments.json'), 
+                                         timeout=ScraperConfig.COMMENT_SCRAPER_TIMEOUT))
         except:
             pass
     
