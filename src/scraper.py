@@ -104,7 +104,6 @@ class Scraper:
         url_list : list
             list of URLs to scrap the metadata for
         """
-        print(f'beginning of comment: {len(url_list)}')
         start_time = time.time()
         if self.async_comments:
             scraper = AsyncProcessComments(url_list)
@@ -229,10 +228,9 @@ class Scraper:
         
         # urls that have metadata but not comments
         self.missing_comment_urls = list(set(metadata.keys()).difference(set(comments.keys())))
-        print('missing comment count: ', len(self.missing_comment_urls))
         # urls that have comments but not metadata
         self.missing_metadata_urls = list(set(comments.keys()).difference(set(metadata.keys())))
-        print('missing metadata count: ', len(self.missing_metadata_urls))
+    
     
     def full_run(self):
         """Full run of the scraper with the following steps:
@@ -335,7 +333,7 @@ class Scraper:
                 
             with open(self.name, 'a') as file:
                 file.write(f'TOTAL {len(all_data)} URLs processed so far\n')
-                
+                print(f'TOTAL {len(all_data)} URLs processed so far')
             all_data = utils.read('data/fetched_full_data.json')
         all_data = utils.read('data/fetched_full_data.json')
         end_time = time.time()
