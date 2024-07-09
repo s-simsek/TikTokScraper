@@ -23,8 +23,10 @@ You have to have chrome installed!
     ```sh
     cd TikTokScrapper
     ```
-3. Install the required dependencies:
+3. Create a virtual environment and download the required dependencies:
     ```sh
+    virtualenv venv
+    source venv/bin/activate 
     pip3 install -r requirements.txt
     ```
 4. run the app
