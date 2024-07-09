@@ -8,11 +8,11 @@ You have to have chrome installed!
 
 1. Clone the repository:
     ```sh
-    git clone https://github.com/your-username/tiktok-scraper.git
+    git clone https://github.com/s-simsek/TikTokScraper.git
     ```
 2. Navigate to the project directory:
     ```sh
-    cd TikTokScrapper
+    cd TikTokScraper
     ```
 3. Create a virtual environment and download the required dependencies:
     ```sh
@@ -22,7 +22,7 @@ You have to have chrome installed!
     ```
 4. run the app
    ```sh
-   python3 src/scrapper.py
+   python3 src/scraper.py
    ```
    
 Or, with *Docker*:
