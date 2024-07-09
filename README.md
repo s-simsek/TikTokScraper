@@ -15,32 +15,32 @@ The TikTok Scraper is a tool designed to collect comprehensive data from TikTok 
 
 You have to have chrome installed!
 
-- Clone the repository:
+1. Clone the repository:
     ```sh
     git clone https://github.com/your-username/tiktok-scraper.git
     ```
-- Navigate to the project directory:
+2. Navigate to the project directory:
     ```sh
     cd TikTokScrapper
     ```
-Create a virtual environment and download the required dependencies:
+3. Create a virtual environment and download the required dependencies:
     ```sh
     virtualenv venv
     source venv/bin/activate 
     pip3 install -r requirements.txt
     ```
-run the app
+4. run the app
    ```sh
    python3 src/scrapper.py
    ```
    
 Or, with *Docker*:
 
-Pull the Docker image
+1. Pull the Docker image
     ```sh
     docker pull safaksimsek/finesse-scrapper-app
     ```
-Run the Docker container:
+2. Run the Docker container:
    ```sh
     docker run -it safaksimsek/finesse-scrapper-app
     ```
