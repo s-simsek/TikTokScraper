@@ -33,7 +33,7 @@ Or, with *Docker*:
     ```
 2. Run the Docker container:
    ```sh
-    docker run -it safaksimsek/finesse-scrapper-app
+    docker run -p 8000:8000 finesse-scrapper-app
     ```
 
 
