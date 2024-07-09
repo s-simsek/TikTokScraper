@@ -15,11 +15,11 @@ The TikTok Scraper is a tool designed to collect comprehensive data from TikTok 
 
 You have to have chrome installed!
 
-Clone the repository:
+- Clone the repository:
     ```sh
     git clone https://github.com/your-username/tiktok-scraper.git
     ```
-Navigate to the project directory:
+- Navigate to the project directory:
     ```sh
     cd TikTokScrapper
     ```
