@@ -24,13 +24,13 @@ class ScrapperConfig:
     COMMENT_COUNT = 50
     
     # metadata scrapper method: parallel or async
-    ASYNC_METADATA = False
+    ASYNC_METADATA = True
     
     # comment scrapper method: parallel or async
-    ASYNC_COMMENTS = False 
+    ASYNC_COMMENTS = True 
     
     # total urls to scrap
-    TOTAL_SCRAP_COUNT = 200 
+    TOTAL_SCRAP_COUNT = 1000 
     
     # url scrapper timeout in seconds
     URL_SCRAPPER_TIMEOUT = 60
@@ -42,10 +42,10 @@ class ScrapperConfig:
     COMMENT_SCRAPPER_TIMEOUT = 40 
     
     # sleep between methods in seconds
-    METHOD_BREAK = 15 
+    METHOD_BREAK = 2
     
     # sleep between runs in seconds
-    RUN_BREAK = 180
+    RUN_BREAK = 10
     
     # success rate threshold
     SUCCESS_RATE_THRESHOLD = 60

@@ -89,7 +89,7 @@ class Scrapper:
             file.write(f'{method} processed {processed_url_count} URLs in {difference} seconds, ')
             file.write(f'Success Rate: {int(success_rate)}%\n')
             print(f"{method} processed {processed_url_count} URLs in {difference} seconds")
-            print(f'Success Rate: {int(success_rate)}%\n')
+            print(f'Success Rate: {int(success_rate)}%')
         
         # if success rate is < threshold, change the scrapper
         if success_rate < ScrapperConfig.SUCCESS_RATE_THRESHOLD:
@@ -115,6 +115,8 @@ class Scrapper:
         end_time = time.time()
         difference = f"{end_time - start_time:.2f}"
         processed_url_count = len(utils.read('data/fetched_comments.json'))
+        print(f'processed_url_count: {processed_url_count}')
+        print(f'Number of URLs used to fetch comments: {len(url_list)}')
         success_rate = int(processed_url_count/len(url_list)*100)
         
         with open(self.name, 'a') as file:
@@ -140,17 +142,25 @@ class Scrapper:
         with open(self.name, 'a') as file:
             file.write(f'{len(full_data)} new URLs processed\n')
             print(f'{len(full_data)} new URLs processed')
+            
         if full_data:
             with open('data/database.json', 'r') as file:
                 database = json.load(file)
+                
+            # new urls that does not exist in the database
             new_data = set(full_data.keys()).difference(set(database.keys()))
+            
+            # add new urls to the database
             database = database | full_data
             utils.write('data/database.json', database)
             print(f'{len(new_data)} new data added')
             
+            # update the data that is pulled in the current run 
             current_run = utils.read('data/fetched_full_data.json')
             current_run = current_run | full_data
             utils.write('data/fetched_full_data.json', current_run)
+            
+        # calculate the data that are left over
         metadata = utils.read('data/fetched_metadata.json')
         comments = utils.read('data/fetched_comments.json')
         urls = utils.read('data/fetched_urls.json')
@@ -179,7 +189,17 @@ class Scrapper:
         metadata = utils.read('data/fetched_metadata.json')
         comments = utils.read('data/fetched_comments.json')
         urls = utils.read('data/fetched_urls.json')
+        
+        # urls that have all information
         complete = set(metadata.keys()) & set(comments.keys())
+        
+        # urls that have either metadata or comment information
+        union = set(metadata.keys()) | set(comments.keys())
+        
+        # urls that have no information
+        unprocessed_urls = list(set(urls).difference(union))
+        
+        # process urls that have full information
         full_data = {}
         for url in complete: 
             metadata[url]['Comments'] = comments[url]
@@ -187,8 +207,7 @@ class Scrapper:
             if not clear:
                 del metadata[url]
                 del comments[url]
-        union = set(metadata.keys()) | set(comments.keys())
-        unprocessed_urls = list(set(urls).difference(union))
+        
         if clear: 
             # clean up metadata and comment database 
             utils.write('data/fetched_metadata.json', {})
@@ -247,8 +266,9 @@ class Scrapper:
             if True, clears the database for urls, metadata, and comments
         """
         with open(self.name, 'a') as file:
-                file.write(f'{"-"*5}Initiating Left Over Run{"-"*5}\n')
-                print(f'{"-"*5}Initiating Left Over Run{"-"*5}')
+                file.write(f'\n{"-"*5}Initiating Left Over Run{"-"*5}\n')
+                print(f'\n{"-"*5}Initiating Left Over Run{"-"*5}')
+                
         self.update_missing_data()
         if self.missing_comment_urls + self.url_list:
             print('initiating comment Scrapping')
@@ -281,8 +301,8 @@ class Scrapper:
         outer_break = False  
         while len(all_data) < ScrapperConfig.TOTAL_SCRAP_COUNT and not outer_break:
             with open(self.name, 'a') as file:
-                file.write(f'{"-"*5}Initiating Full Run{"-"*5}\n')
-                print(f'{"-"*5}Initiating Full Run{"-"*5}')
+                file.write(f'\n{"-"*5}Initiating Full Run{"-"*5}\n')
+                print(f'\n{"-"*5}Initiating Full Run{"-"*5}')
             self.full_run()
             all_data = utils.read('data/fetched_full_data.json')
             
