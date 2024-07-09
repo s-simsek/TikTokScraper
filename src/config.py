@@ -30,7 +30,7 @@ class ScraperConfig:
     ASYNC_COMMENTS = True 
     
     # total urls to scrap
-    TOTAL_SCRAP_COUNT = 1000 
+    TOTAL_SCRAP_COUNT = 600 
     
     # url scrapper timeout in seconds
     URL_SCRAPER_TIMEOUT = 60
@@ -42,10 +42,10 @@ class ScraperConfig:
     COMMENT_SCRAPER_TIMEOUT = 40 
     
     # sleep between methods in seconds
-    METHOD_BREAK = 2
+    METHOD_BREAK = 10
     
     # sleep between runs in seconds
-    RUN_BREAK = 10
+    RUN_BREAK = 20
     
     # success rate threshold
     SUCCESS_RATE_THRESHOLD = 60

@@ -86,9 +86,9 @@ class Scraper:
         success_rate = int(processed_url_count/len(url_list)*100)
         
         with open(self.name, 'a') as file:
-            file.write(f'{method} processed {processed_url_count} URLs in {difference} seconds, ')
+            file.write(f'{method} processed {processed_url_count} out of {len(url_list)} URLs in {difference} seconds, ')
             file.write(f'Success Rate: {int(success_rate)}%\n')
-            print(f"{method} processed {processed_url_count} URLs in {difference} seconds")
+            print(f"{method} processed {processed_url_count} out of {len(url_list)} URLs in {difference} seconds")
             print(f'Success Rate: {int(success_rate)}%')
         
         # if success rate is < threshold, change the scraper
@@ -104,6 +104,7 @@ class Scraper:
         url_list : list
             list of URLs to scrap the metadata for
         """
+        print(f'beginning of comment: {len(url_list)}')
         start_time = time.time()
         if self.async_comments:
             scraper = AsyncProcessComments(url_list)
@@ -115,14 +116,12 @@ class Scraper:
         end_time = time.time()
         difference = f"{end_time - start_time:.2f}"
         processed_url_count = len(utils.read('data/fetched_comments.json'))
-        print(f'processed_url_count: {processed_url_count}')
-        print(f'Number of URLs used to fetch comments: {len(url_list)}')
         success_rate = int(processed_url_count/len(url_list)*100)
         
         with open(self.name, 'a') as file:
-            file.write(f'{method} processed {processed_url_count} URLs in {difference} seconds, ')
+            file.write(f'{method} processed {processed_url_count} out of {len(url_list)} URLs in {difference} seconds, ')
             file.write(f'Success Rate: {int(success_rate)}%\n')
-            print(f"{method} processed {processed_url_count} URLs in {difference} seconds")
+            print(f"{method} processed {processed_url_count} out of {len(url_list)} URLs in {difference} seconds")
             print(f'Success Rate: {int(success_rate)}%')
             
         # if success rate is < threshold, change the scraper
@@ -143,7 +142,7 @@ class Scraper:
             file.write(f'{len(full_data)} new URLs processed\n')
             print(f'{len(full_data)} new URLs processed')
             
-        if full_data:
+        if len(full_data):
             with open('data/database.json', 'r') as file:
                 database = json.load(file)
                 
@@ -227,8 +226,13 @@ class Scraper:
         as well as URL that have comments but not metadata information (missing_metadata_urls)"""
         metadata = utils.read('data/fetched_metadata.json')
         comments = utils.read('data/fetched_comments.json')
+        
+        # urls that have metadata but not comments
         self.missing_comment_urls = list(set(metadata.keys()).difference(set(comments.keys())))
+        print('missing comment count: ', len(self.missing_comment_urls))
+        # urls that have comments but not metadata
         self.missing_metadata_urls = list(set(comments.keys()).difference(set(metadata.keys())))
+        print('missing metadata count: ', len(self.missing_metadata_urls))
     
     def full_run(self):
         """Full run of the scraper with the following steps:
@@ -270,14 +274,23 @@ class Scraper:
                 print(f'\n{"-"*5}Initiating Left Over Run{"-"*5}')
                 
         self.update_missing_data()
-        if self.missing_comment_urls + self.url_list:
-            print('initiating comment scraping')
-            self.scrap_comments(list(set(self.missing_comment_urls + self.url_list)))
-            time.sleep(ScraperConfig.METHOD_BREAK)
             
         if self.missing_metadata_urls + self.url_list: 
             print('initiating metadata scraping')
+            metadata_old = utils.read('data/fetched_metadata.json')
             self.scrap_metadata(list(set(self.missing_metadata_urls + self.url_list)))
+            metadata_new = utils.read('data/fetched_metadata.json')
+            metadata = metadata_old | metadata_new 
+            utils.write('data/fetched_metadata.json', metadata)
+            time.sleep(ScraperConfig.METHOD_BREAK)
+        
+        if self.missing_comment_urls + self.url_list:
+            print('initiating comment scraping')
+            comments_old = utils.read('data/fetched_comments.json')
+            self.scrap_comments(list(set(self.missing_comment_urls + self.url_list)))
+            comments_new = utils.read('data/fetched_comments.json')
+            comments = comments_old | comments_new
+            utils.write('data/fetched_comments.json', comments)
             time.sleep(ScraperConfig.METHOD_BREAK)
         
         full_data = self.merge_results(clear)
@@ -320,12 +333,16 @@ class Scraper:
                     outer_break = True
                     break
                 
+            with open(self.name, 'a') as file:
+                file.write(f'TOTAL {len(all_data)} URLs processed so far\n')
+                
             all_data = utils.read('data/fetched_full_data.json')
+        all_data = utils.read('data/fetched_full_data.json')
         end_time = time.time()
         difference = f"{end_time - start_time:.2f}"
         with open(self.name, 'a') as file:
-                file.write(f'In total {len(all_data)} URLs processed in {difference} seconds\n')
-                print(f'In total {len(all_data)} URLs processed in {difference} seconds')
+            file.write(f'In total {len(all_data)} URLs processed in {difference} seconds\n')
+            print(f'In total {len(all_data)} URLs processed in {difference} seconds')
 
 if __name__ == '__main__': 
     scraper = Scraper()
